@@ -1,6 +1,8 @@
-#v1.0 2017_06_10 Author:wang xiaowei  Email:wangxiaowei@ckyhvfx.com
+#v1.1 2017_06_12 Author:wang xiaowei  Email:wangxiaowei@ckyhvfx.com
 #This script will bake local space animation of objects into worldspace animation.
-
+#To do: only bake within parameter animation range. But if the animatin is driven by expression 
+#like sin($F) or other form it will not work. Have to consider all the situation.
+#To do: if source doesn't have animation then don't bake animation just make a still.
 
 range = hou.playbar.playbackRange()
 start = range[0]
@@ -37,6 +39,9 @@ chopnet.moveToGoodPosition()
 for old_node in convert_nodes:
     node_path = old_node.path()
     
+    #Get rotation order.
+    rot_order = node.evalParm("rOrd")  
+    
     #copy convert node to /obj 
     new_node = hou.copyNodesTo([old_node],hou.node("/obj"))[0]
     
@@ -51,6 +56,7 @@ for old_node in convert_nodes:
     
     new_node.parmTuple('t').deleteAllKeyframes()    #delete all the translate keyframes
     new_node.parmTuple('r').deleteAllKeyframes()    #delete all the rotation keyframes
+    new_node.setParms({"rOrd":rot_order})           #Set rotation order
     new_node.movePreTransformIntoParmTransform()    #Extract pretransform in case it will cause mis lineup.
 
     #Create a chopnode "object" and name with the corresponding /obj object node.
@@ -58,7 +64,8 @@ for old_node in convert_nodes:
     chopobject.moveToGoodPosition()
     
     #Setup all the parameters
-    chopobject.setParms({"targetpath":node_path,"compute": 6,"start":start,"end":end,"units":0,"export":new_node.path()})
+    chopobject.setParms({"targetpath":node_path,"compute": 6,"rOrd":rot_order,"start":start,"end":end,"units":0,"export":new_node.path()})
+
     #Export the channel to object.
     chopobject.setExportFlag(1)
 
