@@ -43,6 +43,7 @@ chopnet.moveToGoodPosition()
 
 objnet = chopnet.createNode("objnet")
 ref = objnet.createNode("null")
+ref.setDisplayFlag(0)
 ref.setParms({"scale":100})
 ref_path = ref.path()
 
