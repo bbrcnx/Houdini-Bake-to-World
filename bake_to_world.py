@@ -1,5 +1,12 @@
-#v1.1 2017_06_12 Author:wang xiaowei  Email:wangxiaowei@ckyhvfx.com
-#This script will bake local space animation of objects into worldspace animation.
+#t_r0.01 v1.0 2017_06_13 Author:wang xiaowei  Email:wangxiaowei@ckyhvfx.com
+
+#This script will copy the selected nodes bake keyframes to match translate and rotation 
+#after the selected nodes scaled down 100 times in world space but keep itself's scale.
+
+#For example when you import a camera from maya you want to scale down it 100 times 
+#but you just want the postion and rotion after scaled down but keep the scale the camera. 
+#Since camera shouldn't be scaled otherwise it will have error in rendering.
+
 #To do: only bake within parameter animation range. But if the animatin is driven by expression 
 #like sin($F) or other form it will not work. Have to consider all the situation.
 #To do: if source doesn't have animation then don't bake animation just make a still.
@@ -7,7 +14,6 @@
 range = hou.playbar.playbackRange()
 start = range[0]
 end = range[1]
-
 
 sel_nodes=hou.selectedNodes()
 
@@ -35,6 +41,10 @@ if convert_nodes == []:
 chopnet = hou.node("/obj").createNode("chopnet")
 chopnet.moveToGoodPosition()
 
+objnet = chopnet.createNode("objnet")
+ref = objnet.createNode("null")
+ref.setParms({"scale":100})
+ref_path = ref.path()
 
 for old_node in convert_nodes:
     node_path = old_node.path()
@@ -64,7 +74,7 @@ for old_node in convert_nodes:
     chopobject.moveToGoodPosition()
     
     #Setup all the parameters
-    chopobject.setParms({"targetpath":node_path,"compute": 6,"rOrd":rot_order,"start":start,"end":end,"units":0,"export":new_node.path()})
+    chopobject.setParms({"targetpath":node_path,"referencepath":ref_path,"compute": 6,"rOrd":rot_order,"start":start,"end":end,"units":0,"export":new_node.path()})
 
     #Export the channel to object.
     chopobject.setExportFlag(1)
